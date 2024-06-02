@@ -26,16 +26,37 @@ def crawl_static_website(url):
         titles = soup.find_all('h3', class_='ng-binding')  # Confirm the class name
         if not titles:
             print("No titles found.")
+            return []
         else:
-            for title in titles:
-                print(title.text.strip())
+            return [title.text.strip() for title in titles]
 
     except Exception as e:
         print(f"An error occurred: {e}")
+        return []
     finally:
         driver.quit()
+
+def generate_summary(titles):
+    summary = "今日总结:\n"
+    for i, title in enumerate(titles, 1):
+        summary += f"{i}. {title}\n"
+    return summary
+
+# URLs for static and dynamic scraping
+static_url = 'https://www.modaily.cn/amucsite/web/index.html#/home'
+dynamic_url = 'https://drive.google.com'
+
+# Credentials for login
+email = 'ippolitbattyp97@gmail.com'
+password = 'pwawkiv8992y'
 
 # URLs for static scraping
 static_url = 'https://www.modaily.cn/amucsite/web/index.html#/home'
 print("Static Website Titles:")
-crawl_static_website(static_url)
+crawl_static_website(static_url) 
+summary = generate_summary(crawl_static_website(static_url))
+print(summary)
+
+# Save the summary to a file
+with open('daily_summary.txt', 'w', encoding='utf-8') as file:
+    file.write(summary)
