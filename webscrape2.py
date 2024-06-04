@@ -4,10 +4,9 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
-from bs4 import BeautifulSoup
 import time
 
-def crawl_static_website(url):
+def crawl_static_website(url, click_selector=None):
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')
@@ -20,10 +19,17 @@ def crawl_static_website(url):
         # Wait for the page to fully load
         time.sleep(10)
         
-        # Get page source after JavaScript has rendered
-        page_source = driver.page_source
-        soup = BeautifulSoup(page_source, 'html.parser')
-        titles = soup.find_all('h3', class_='ng-binding')  # Confirm the class name
+        # If click_selector is provided, click the element to navigate
+        if click_selector:
+            try:
+                element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, click_selector)))
+                element.click()
+                time.sleep(10)  # Wait for the new page to load
+            except Exception as e:
+                print(f"An error occurred while clicking: {e}")
+        
+        # Find all titles using Selenium
+        titles = driver.find_elements(By.CLASS_NAME, 'ng-binding')
         if not titles:
             print("No titles found.")
             return []
@@ -42,19 +48,13 @@ def generate_summary(titles):
         summary += f"{i}. {title}\n"
     return summary
 
-# URLs for static and dynamic scraping
+# URL for static scraping
 static_url = 'https://www.modaily.cn/amucsite/web/index.html#/home'
-dynamic_url = 'https://drive.google.com'
-
-# Credentials for login
-email = 'ippolitbattyp97@gmail.com'
-password = 'pwawkiv8992y'
-
-# URLs for static scraping
-static_url = 'https://www.modaily.cn/amucsite/web/index.html#/home'
+# Selector for the element to click (modify as needed)
+click_selector = '.some-css-selector'  # Change this to the actual selector
 print("Static Website Titles:")
-crawl_static_website(static_url) 
-summary = generate_summary(crawl_static_website(static_url))
+titles = crawl_static_website(static_url, click_selector)
+summary = generate_summary(titles)
 print(summary)
 
 # Save the summary to a file
